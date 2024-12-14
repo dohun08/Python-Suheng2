@@ -17,7 +17,9 @@ app.add_middleware(
 )
 site = {}
 def CSVdata(n) :
-    f =  open('./traffic_data_20231231.csv', mode = 'rt', encoding = 'CP949')
+    #uvicorn 으로 할때는 ./traffic_data_20231231.csv 이거
+    #docekr 로 할때는 /app/traffic_data_20231231.csv 이거
+    f =  open('/app/traffic_data_20231231.csv', mode = 'rt', encoding = 'CP949')
     reader = csv.reader(f, delimiter = ',')
     result = []
     for line in reader:
@@ -76,20 +78,10 @@ def CSVdata(n) :
 def main() :
     return CSVdata(1)
 
-@app.get("/api/data/{image_name}")
-def get_image(image_name: str):
-    # images 폴더의 경로를 설정합니다.
-    image_path = os.path.join("images", image_name)
-    print(image_path)
-    # 파일이 존재하는지 확인합니다.
-    if os.path.isfile(image_path):
-        return FileResponse(image_path, media_type='image/png')
-    else:
-        return {"error": "Image not found."}
-    
-    
+sum = 0
 @app.get("/api/graph")
-async def create_graph():
+async def create_graph(n=0):
+    global sum
     # 데이터 예시
     updated_data = CSVdata(0)
 
@@ -98,6 +90,7 @@ async def create_graph():
     for key, value in updated_data.items():
         if value != "일요일":
             data[key] = int(value)
+            sum+=int(value)
 
     # 차트 생성
     plt.figure(figsize=(10, 6))
@@ -107,6 +100,41 @@ async def create_graph():
     plt.xlabel('지역')
     plt.ylabel('이용수')
     plt.legend()
+
+    # 이미지 저장
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)  # 파일 포인터를 처음으로 되돌림
+    plt.close()  # 그래프 닫기
+    if n :
+        return data
+    else :
+     return StreamingResponse(buf, media_type="image/png")
+
+
+@app.get("/api/graph2")
+async def create_graph2():
+    
+    global sum
+    # 데이터 예시
+    data = await create_graph(1)
+    labels = list(data.keys())
+    sizes = [value for value in data.values()]
+
+    # 원형 그래프 생성
+    textprops = {'fontsize': 18}
+    plt.figure(figsize=(18, 14))
+    colors = ['gold', 'yellowgreen', 'lightcoral', 'lightskyblue',
+              'mediumseagreen', 'salmon', 'plum', 'tan',
+              'skyblue', 'lightpink', 'orange', 'peachpuff',
+              'lightgrey', 'lavender', 'powderblue', 'khaki', 'lightyellow']
+
+    plt.pie(sizes, labels=labels, colors=colors,
+            autopct=lambda p: '{:.0f}%'.format(p) if p > 5 else '',  # 5% 이하의 퍼센트는 숨김
+            startangle=100, textprops={'fontsize': 30},
+            labeldistance=1.1)  # 레이블과 원의 중심 간 거리
+
+    plt.axis('equal')  # Equal aspect ratio ensures that pie chart is a circle.
 
     # 이미지 저장
     buf = io.BytesIO()

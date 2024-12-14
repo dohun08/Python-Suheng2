@@ -15,7 +15,7 @@ export default function DataPage(){
   const get = async ()=>{
     try {
       const address = await getData("/api/graph");
-      const address2 = await getData("/api/data/circlegraph.png");
+      const address2 = await getData("/api/graph2");
       seturl(address);
       seturl2(address2);
     } catch (error) {
@@ -51,6 +51,7 @@ export default function DataPage(){
                 </Main>
                 <Main>
                 <img src={url2} alt='graph' width={'100%'}/>
+                <p>서울, 부산, 대구, 인천, 경기지역빼고는 모두 5%미만</p>
                 </Main>
         </Container>
     )
@@ -118,6 +119,6 @@ const BoxBox = styled.div`
     align-items: center;
     display: flex;
     justify-content: space-between;
-    gap: 2px;
+    gap: 5px;
     font-size: 14px;
 `;
