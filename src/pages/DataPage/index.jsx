@@ -14,8 +14,8 @@ export default function DataPage(){
   }, [])
   const get = async ()=>{
     try {
-      const address = await getData("graph.png");
-      const address2 = await getData("circlegraph.png");
+      const address = await getData("/api/graph");
+      const address2 = await getData("/api/data/circlegraph.png");
       seturl(address);
       seturl2(address2);
     } catch (error) {

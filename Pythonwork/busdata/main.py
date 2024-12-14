@@ -1,8 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from fastapi.responses import StreamingResponse
+import matplotlib.pyplot as plt
 import csv
 import os
+import io
 
 app = FastAPI()
 app.add_middleware(
@@ -13,7 +16,7 @@ app.add_middleware(
     allow_headers=["*"],  # 모든 HTTP 헤더 허용
 )
 site = {}
-def data() :
+def CSVdata(n) :
     f =  open('./한국교통안전공단_대중교통 이용인원 현황_20231231.csv', mode = 'rt', encoding = 'CP949')
     reader = csv.reader(f, delimiter = ',')
     result = []
@@ -22,6 +25,7 @@ def data() :
         site[gu] = (line[3])
         result.append(site)
     f.close()
+    
     updated_data = {
     'Category': site['구분1'], 
     'Seoul': site['서울'].strip(),
@@ -62,12 +66,15 @@ def data() :
     {"name": "세종", "value": int(updated_data['Sejong'])}
 ]
 
-    return formatted_data
+    if n :
+        return formatted_data
+    else :
+        return updated_data
 
 
 @app.get('/api/rank')
 def main() :
-    return data()
+    return CSVdata(1)
 
 @app.get("/api/data/{image_name}")
 def get_image(image_name: str):
@@ -79,3 +86,32 @@ def get_image(image_name: str):
         return FileResponse(image_path, media_type='image/png')
     else:
         return {"error": "Image not found."}
+    
+    
+@app.get("/api/graph")
+async def create_graph():
+    # 데이터 예시
+    updated_data = CSVdata(0)
+
+
+    data = {}
+    for key, value in updated_data.items():
+        if value != "일요일":
+            data[key] = int(value)
+
+    # 차트 생성
+    plt.figure(figsize=(10, 6))
+    bars = plt.bar(data.keys(), data.values(), label='이용수', color="skyblue")
+    plt.yticks(ticks=range(0, max(data.values()) + 100000, 100000),
+               labels=range(0, max(data.values()) + 100000, 100000))
+    plt.xlabel('지역')
+    plt.ylabel('이용수')
+    plt.legend()
+
+    # 이미지 저장
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)  # 파일 포인터를 처음으로 되돌림
+    plt.close()  # 그래프 닫기
+
+    return StreamingResponse(buf, media_type="image/png")
