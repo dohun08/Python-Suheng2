@@ -17,7 +17,7 @@ app.add_middleware(
 )
 site = {}
 def CSVdata(n) :
-    f =  open('./한국교통안전공단_대중교통 이용인원 현황_20231231.csv', mode = 'rt', encoding = 'CP949')
+    f =  open('./traffic_data_20231231.csv', mode = 'rt', encoding = 'CP949')
     reader = csv.reader(f, delimiter = ',')
     result = []
     for line in reader:
