@@ -1,17 +1,36 @@
 import styled from 'styled-components';
 import CarImage from '../../assets/carimage.jpeg';
 import {Link} from 'react-router-dom';
-import Map from '../../assets/map.svg'
-import graph from '../../assets/graph.png';
-import graph2 from '../../assets/circlegraph.png';
+import { useEffect, useState } from 'react';
+import { getData } from '../../untill/getImage';
+import Map from '../../assets/map.svg';
 
 export default function DataPage(){
+  const [url, seturl] = useState();
+  const [url2, seturl2] = useState();
+  const [isLoading, setIsLoading] = useState(true);
+  useEffect(()=>{
+    get();
+  }, [])
+  const get = async ()=>{
+    try {
+      const address = await getData("graph.png");
+      const address2 = await getData("circlegraph.png");
+      seturl(address);
+      seturl2(address2);
+    } catch (error) {
+      console.log(error);
+    }finally{
+      setIsLoading(false);
+    }
+  }
+  if(isLoading) return <p>로딩중</p>
     return(
         <Container>
             <Black />
             <Link to={'/rank'}><Btn>돌아가기</Btn></Link>
                 <Main>
-                    <img src={graph} alt='graph' width={'100%'}/>
+                    <img src={url} alt='graph' width={'100%'}/>
                 </Main>
                 <Main>
                 <img src={Map} alt='map' width={'100%'}/>
@@ -31,7 +50,7 @@ export default function DataPage(){
         </BoxBox>
                 </Main>
                 <Main>
-                <img src={graph2} alt='graph' width={'100%'}/>
+                <img src={url2} alt='graph' width={'100%'}/>
                 </Main>
         </Container>
     )

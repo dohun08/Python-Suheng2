@@ -1,27 +1,32 @@
 import styled from 'styled-components';
 import CarImage from '../../assets/carimage.jpeg';
 import {Link} from 'react-router-dom';
+import axios from 'axios'
+import { useEffect, useState } from 'react';
 
 export default function Ranking(){
-    const data = [
-        { name: '서울', value: 2468441 }, 
-        { name: '경기', value: 1541623 }, 
-        { name: '부산', value: 613781 }, 
-        { name: '인천', value: 412923 },
-        { name: '대구', value: 268952 },
-        { name: '경상남도', value: 156886 }, 
-        { name: '대전', value: 141284 }, 
-        { name: '충청남도', value: 107062 }, 
-        { name: '광주', value: 102661 }, 
-        { name: '경상북도', value: 89202 }, 
-        { name: '울산', value: 73049 }, 
-        { name: '전라남도', value: 60041 }, 
-        { name: '충청북도', value: 58362 }, 
-        { name: '전라북도', value: 54140 }, 
-        { name: '제주', value: 51067 }, 
-        { name: '강원', value: 46206 }, 
-        { name: '세종', value: 17567 }
-    ];
+    const [isLoading, setIsLoading] = useState(true);
+    const [data, setData] = useState();
+    useEffect(()=>{
+        getData();
+    }, [])
+    const getData = async ()=>{
+        try{
+            const res = await axios.get('http://127.0.0.1:8000/api/rank')
+            console.log(res.data);
+            setData(res.data);
+        }catch(error){
+            console.log(error);
+        }finally{
+            setIsLoading(false);
+        }
+    }
+    
+    if(isLoading){
+        return(
+            <p>로딩중</p>
+        )
+    }
 
     return(
             <Container>
@@ -32,7 +37,7 @@ export default function Ranking(){
                     <MainBox>
                     {data.map((item, index)=>{
                         return(
-                            <Box>
+                            <Box key={index}>
                                 <p>{index+1} 위 : {item.name}</p>
                                 <p>{item.value}명</p>
                             </Box>
@@ -108,6 +113,10 @@ const Box = styled.div`
 `
 const MainBox = styled.div`
     width: 85%;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
     & > :nth-of-type(1){
         background-color: #f05b5b;
         font-weight: 700;
